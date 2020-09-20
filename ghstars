@@ -22,6 +22,6 @@ longest = len(max([repo['full_name'] for repo in stardata], key=len))
 for i, repo in enumerate(stardata):
     print(f"{i+1}.\t{repo['full_name']:{longest+1}}", end='')
     if repo['description'] is not None:
-        print(f"{repo['description'][:100]}")
+        print(f"{repo['description'][:80]}")
     else:
         print()

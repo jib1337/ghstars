@@ -13,7 +13,7 @@ while True:
                 nextpage = json.load(response)
                 
                 if len(nextpage) > 0:
-                    stardata.append(json.load(response))
+                    stardata.append(nextpage)
                 else:
                     break
 

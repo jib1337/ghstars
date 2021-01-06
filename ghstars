@@ -4,7 +4,6 @@ import urllib.request, urllib.parse, json, sys, os
 user = 'jib1337'
 
 search = False
-page = 1
 
 def getRelease(repo):
 	# Pulls the latest release from a repo
@@ -51,49 +50,68 @@ def getRelease(repo):
 		else:
 			quit()
 
-while True:
-    with urllib.request.urlopen(f'https://api.github.com/users/{user}/starred?per_page=100&page={page}') as response:
-        try:
-            if page == 1:
-                stardata = json.load(response)
-            else:
-                nextpage = json.load(response)
-                
-                if len(nextpage) > 0:
-                    stardata.append(nextpage)
-                else:
-                    break
+def getStarData():
+	page = 1
+	while True:
+		with urllib.request.urlopen(f'https://api.github.com/users/{user}/starred?per_page=100&page={page}') as response:
+			try:
+				if page == 1:
+					stardata = json.load(response)
+				else:
+					nextpage = json.load(response)
+						
+					if len(nextpage) > 0:
+						stardata.append(nextpage)
+					else:
+						break
 
-            if 'documentation_url' in stardata:
-                print('Error: user doesnt exist')
-                quit()
+				if 'documentation_url' in stardata:
+					print('Error: user doesnt exist')
+					quit()
 
-        except ValueError:
-            print('Error: failure to retrieve valid star data')
-            quit()
+			except ValueError:
+				print('Error: failure to retrieve valid star data')
+				quit()
 
-    page+= 1
+		page+= 1
+
+	return stardata
+
+def usage():
+	print('==================================================')
+	print('                     ghstars			             ')
+	print('==================================================\n')
+	print('Tool to interact with starred github repos')
+	print('Usage:\nghstars\t\t\t-\tList stars')
+	print('ghstars <number>\t-\tClone repo by number')
+	print('ghstars -r <number>\t-\tDownload latest release asset')
+	print('ghstars <string>\t-\tSearch starred repos')
+	quit()
+
+def getRepo(repo):
+	try:
+		os.system(f"git clone https://github.com/{repo['full_name']}.git")
+	except Exception as e:
+		print(f'Error: failure to clone repo.\n\n{str(e)}')
+
+	quit()
+
+stardata = getStarData()
 
 if len(sys.argv) > 1:
-		if sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
-			os.system(f"git clone https://github.com/{stardata[int(sys.argv[1])-1]['full_name']}.git")
+		if sys.argv[1].lower() == '-h':
+			usage()
+		elif sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
+			getRepo(stardata[int(sys.argv[1])-1])
 			quit()
-		elif sys.argv[1] == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
+		elif sys.argv[1].lower() == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
 			getRelease(stardata[int(sys.argv[2])-1])
-		elif not sys.argv[1].isdigit() and sys.argv[1].lower() != '-h':
+		elif not sys.argv[1].isdigit():
 			print(f'Searching stars for term: {sys.argv[1]}')
 			search = True
 		else:
-			print('==================================================')
-			print('                     ghstars			             ')
-			print('==================================================\n')
-			print('Tool to interact with starred github repos')
-			print('Usage:\nghstars\t\t\t-\tList stars')
-			print('ghstars <number>\t-\tClone repo by number')
-			print('ghstars -r <number>\t-\tDownload latest release asset')
-			print('ghstars <string>\t-\tSearch starred repos')
-			quit()
-
+			usage()
+	
 longest = len(max([repo['name'] for repo in stardata], key=len))
 
 for i, repo in enumerate(stardata):
@@ -102,16 +120,32 @@ for i, repo in enumerate(stardata):
 		if sys.argv[1].lower() in repo['name'].lower():
 			print(f"{i+1}.\t{repo['full_name']:{longest+1}}", end='')
 			if repo['description'] is not None:
-				print(repo['description'][:80])
-				continue
+				print(repo['description'][:75].rstrip(), end='')
+				if len(repo['description']) > 75:
+					print('...')
+				else:
+					print()
 			else:
 				print()
-				continue
 		else:
 			continue
 
+		continue
+
 	print(f"{i+1}.\t{repo['name']:{longest+1}}", end='')
 	if repo['description'] is not None:
-		print(repo['description'][:80])
+		print(repo['description'][:75].rstrip(), end='')
+		if len(repo['description']) > 75:
+			print('...')
+		else:
+			print()
 	else:
  		print()
+
+try:
+	getID = int(input('Get repo number (invalid input to exit):\n>> '))
+except ValueError:
+	quit()
+
+if getID <= len(stardata) and getID > 0:
+	getRepo(stardata[getID-1])

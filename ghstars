@@ -42,7 +42,7 @@ def getRelease(repo):
 					with open(assetList[getID-1][1], 'wb') as assetFile:
 						assetFile.write(fileData.read())
 				except Exception as e:
-						print(f'Error: Writing file failed.\n\n{str(e)}')
+						print(f'Error: Writing file failed.\n{str(e)}')
 				
 			print('Asset downloaded to current location.')
 			quit()
@@ -92,11 +92,9 @@ def getRepo(repo):
 	try:
 		os.system(f"git clone https://github.com/{repo['full_name']}.git")
 	except Exception as e:
-		print(f'Error: failure to clone repo.\n\n{str(e)}')
+		print(f'Error: failure to clone repo.\n{str(e)}')
 
 	quit()
-
-stardata = getStarData()
 
 if len(sys.argv) > 1:
 		if sys.argv[1].lower() == '-h':
@@ -106,12 +104,18 @@ if len(sys.argv) > 1:
 			quit()
 		elif sys.argv[1].lower() == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
 			getRelease(stardata[int(sys.argv[2])-1])
-		elif not sys.argv[1].isdigit():
+		elif not sys.argv[1].isdigit() and len(sys.argv) == 2:
 			print(f'Searching stars for term: {sys.argv[1]}')
 			search = True
 		else:
 			usage()
-	
+
+try:
+	stardata = getStarData()
+except urllib.error.HTTPError as e:
+	print(f'Error: {str(e)}')
+	quit()
+
 longest = len(max([repo['name'] for repo in stardata], key=len))
 
 for i, repo in enumerate(stardata):

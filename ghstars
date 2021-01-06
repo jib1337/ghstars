@@ -96,6 +96,12 @@ def getRepo(repo):
 
 	quit()
 
+try:
+	stardata = getStarData()
+except Exception as e:
+	print(f'Error: {str(e)}')
+	quit()
+
 if len(sys.argv) > 1:
 		if sys.argv[1].lower() == '-h':
 			usage()
@@ -109,12 +115,6 @@ if len(sys.argv) > 1:
 			search = True
 		else:
 			usage()
-
-try:
-	stardata = getStarData()
-except urllib.error.HTTPError as e:
-	print(f'Error: {str(e)}')
-	quit()
 
 longest = len(max([repo['name'] for repo in stardata], key=len))
 

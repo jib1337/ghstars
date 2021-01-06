@@ -51,41 +51,48 @@ def getRelease(repo):
 			quit()
 
 def getStarData():
-	page = 1
-	while True:
-		with urllib.request.urlopen(f'https://api.github.com/users/{user}/starred?per_page=100&page={page}') as response:
-			try:
-				if page == 1:
-					stardata = json.load(response)
-				else:
-					nextpage = json.load(response)
-						
-					if len(nextpage) > 0:
-						stardata.append(nextpage)
-					else:
-						break
+	# Retrieve star data using Github API
 
-				if 'documentation_url' in stardata:
-					print('Error: user doesnt exist')
+	try:
+		page = 1
+		while True:
+			with urllib.request.urlopen(f'https://api.github.com/users/{user}/starred?per_page=100&page={page}') as response:
+				try:
+					if page == 1:
+						stardata = json.load(response)
+					else:
+						nextpage = json.load(response)
+						
+						if len(nextpage) > 0:
+							stardata.append(nextpage)
+						else:
+							break
+
+					if 'documentation_url' in stardata:
+						print('Error: user doesnt exist')
+						quit()
+
+				except ValueError:
+					print('Error: failure to retrieve valid star data')
 					quit()
 
-			except ValueError:
-				print('Error: failure to retrieve valid star data')
-				quit()
-
-		page+= 1
+			page+= 1
+		
+	except Exception as e:
+		print(f'Error: failure to clone repo.\n{str(e)}')
+		quit()
 
 	return stardata
 
 def usage():
 	print('==================================================')
-	print('                     ghstars			             ')
-	print('==================================================\n')
+	print('                     ghstars')
+	print('==================================================\n\n')
 	print('Tool to interact with starred github repos')
-	print('Usage:\nghstars\t\t\t-\tList stars')
-	print('ghstars <number>\t-\tClone repo by number')
-	print('ghstars -r <number>\t-\tDownload latest release asset')
-	print('ghstars <string>\t-\tSearch starred repos')
+	print('Usage:\nghstars -l\t\t- List all stars')
+	print('ghstars <number>\t- Clone repo by number')
+	print('ghstars -r <number>\t- Download latest release')
+	print('ghstars <string>\t- Search starred repos')
 	quit()
 
 def getRepo(repo):
@@ -96,25 +103,28 @@ def getRepo(repo):
 
 	quit()
 
-try:
+if len(sys.argv) == 1 or len(sys.argv) > 1 and sys.argv[1].lower() == '-h':
+	usage()
+		
+else:
 	stardata = getStarData()
-except Exception as e:
-	print(f'Error: {str(e)}')
-	quit()
 
-if len(sys.argv) > 1:
-		if sys.argv[1].lower() == '-h':
-			usage()
-		elif sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
-			getRepo(stardata[int(sys.argv[1])-1])
-			quit()
-		elif sys.argv[1].lower() == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
-			getRelease(stardata[int(sys.argv[2])-1])
-		elif not sys.argv[1].isdigit() and len(sys.argv) == 2:
-			print(f'Searching stars for term: {sys.argv[1]}')
-			search = True
-		else:
-			usage()
+	if len(sys.argv) == 2 and sys.argv[1].lower() =='-l':
+		pass
+		
+	elif len(sys.argv) == 2 and sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
+		getRepo(stardata[int(sys.argv[1])-1])
+		quit()
+
+	elif len(sys.argv) == 3 and sys.argv[1].lower() == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
+		getRelease(stardata[int(sys.argv[2])-1])
+
+	elif len(sys.argv) == 2 and not sys.argv[1].isdigit():
+		print(f'Searching stars for term: {sys.argv[1]}')
+		search = True
+
+	else:
+		usage()
 
 longest = len(max([repo['name'] for repo in stardata], key=len))
 

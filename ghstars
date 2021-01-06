@@ -3,7 +3,54 @@ import urllib.request, urllib.parse, json, sys, os
 
 user = 'jib1337'
 
+search = False
 page = 1
+
+def getRelease(repo):
+	# Pulls the latest release from a repo
+
+	with urllib.request.urlopen(f"https://api.github.com/repos/{repo['owner']['login']}/{repo['name']}/releases") as response:
+		try:
+			repodata = json.load(response)[0]
+		except:
+			print('Error: failure to retrieve asset data')
+			quit()
+	
+	assetList = []
+	print(f"Available assets in latest release: {repodata['name']}")
+	for i, asset in enumerate(repodata['assets']):
+		assetList.append((i+1, asset['name'], asset['browser_download_url']))
+
+	if not assetList:
+		print('None.')
+		quit()
+	else:
+		for asset in assetList:
+			print(f'{asset[0]}.\t{asset[1]}')
+		print()
+
+		try:
+			getID = int(input('Get asset number: (invalid input to exit):\n>> '))
+		except ValueError:
+			quit()
+	
+		if getID <= len(assetList) and getID > 0:
+			# Download release file
+
+			print(f"Downloading {assetList[getID-1][1]} now...")
+			with urllib.request.urlopen(assetList[getID-1][2]) as fileData:
+				try:
+					with open(assetList[getID-1][1], 'wb') as assetFile:
+						assetFile.write(fileData.read())
+				except Exception as e:
+						print(f'Error: Writing file failed.\n\n{str(e)}')
+				
+			print('Asset downloaded to current location.')
+			quit()
+
+		else:
+			quit()
+
 while True:
     with urllib.request.urlopen(f'https://api.github.com/users/{user}/starred?per_page=100&page={page}') as response:
         try:
@@ -28,17 +75,43 @@ while True:
     page+= 1
 
 if len(sys.argv) > 1:
-    if sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
-        os.system(f"git clone https://github.com/{stardata[int(sys.argv[1])-1]['full_name']}.git")
-        quit()
-    else:
-        print('Invalid argument.\n')
+		if sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
+			os.system(f"git clone https://github.com/{stardata[int(sys.argv[1])-1]['full_name']}.git")
+			quit()
+		elif sys.argv[1] == '-r' and sys.argv[2].isdigit() and int(sys.argv[2]) > 0 and int(sys.argv[2]) <= len(stardata):
+			getRelease(stardata[int(sys.argv[2])-1])
+		elif not sys.argv[1].isdigit() and sys.argv[1].lower() != '-h':
+			print(f'Searching stars for term: {sys.argv[1]}')
+			search = True
+		else:
+			print('==================================================')
+			print('                     ghstars			             ')
+			print('==================================================\n')
+			print('Tool to interact with starred github repos')
+			print('Usage:\nghstars\t\t\t-\tList stars')
+			print('ghstars <number>\t-\tClone repo by number')
+			print('ghstars -r <number>\t-\tDownload latest release asset')
+			print('ghstars <string>\t-\tSearch starred repos')
+			quit()
 
-longest = len(max([repo['full_name'] for repo in stardata], key=len))
+longest = len(max([repo['name'] for repo in stardata], key=len))
 
 for i, repo in enumerate(stardata):
-    print(f"{i+1}.\t{repo['full_name']:{longest+1}}", end='')
-    if repo['description'] is not None:
-        print(repo['description'][:80])
-    else:
-        print()
+	
+	if search == True:
+		if sys.argv[1].lower() in repo['name'].lower():
+			print(f"{i+1}.\t{repo['full_name']:{longest+1}}", end='')
+			if repo['description'] is not None:
+				print(repo['description'][:80])
+				continue
+			else:
+				print()
+				continue
+		else:
+			continue
+
+	print(f"{i+1}.\t{repo['name']:{longest+1}}", end='')
+	if repo['description'] is not None:
+		print(repo['description'][:80])
+	else:
+ 		print()

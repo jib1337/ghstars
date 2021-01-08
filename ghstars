@@ -103,16 +103,13 @@ def getRepo(repo):
 
 	quit()
 
-if len(sys.argv) == 1 or len(sys.argv) > 1 and sys.argv[1].lower() == '-h':
+if len(sys.argv) == 2 and sys.argv[1].lower() == '-h':
 	usage()
 		
 else:
 	stardata = getStarData()
 
-	if len(sys.argv) == 2 and sys.argv[1].lower() =='-l':
-		pass
-		
-	elif len(sys.argv) == 2 and sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
+	if len(sys.argv) == 2 and sys.argv[1].isdigit() and int(sys.argv[1]) > 0 and int(sys.argv[1]) <= len(stardata):
 		getRepo(stardata[int(sys.argv[1])-1])
 		quit()
 
@@ -122,9 +119,6 @@ else:
 	elif len(sys.argv) == 2 and not sys.argv[1].isdigit():
 		print(f'Searching stars for term: {sys.argv[1]}')
 		search = True
-
-	else:
-		usage()
 
 longest = len(max([repo['name'] for repo in stardata], key=len))
 
@@ -155,11 +149,3 @@ for i, repo in enumerate(stardata):
 			print()
 	else:
  		print()
-
-try:
-	getID = int(input('Get repo number (invalid input to exit):\n>> '))
-except ValueError:
-	quit()
-
-if getID <= len(stardata) and getID > 0:
-	getRepo(stardata[getID-1])

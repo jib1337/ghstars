@@ -87,9 +87,10 @@ def getStarData():
 def usage():
 	print('==================================================')
 	print('                     ghstars')
-	print('==================================================\n\n')
-	print('Tool to interact with starred github repos')
-	print('Usage:\nghstars -l\t\t- List all stars')
+	print('==================================================\n')
+	print('Tool to interact with starred github repos\n')
+	print('Usage:\nghstars -h\t\t- Show help and exit')
+	print('ghstars\t\t\t- Show numbered list of stars')
 	print('ghstars <number>\t- Clone repo by number')
 	print('ghstars -r <number>\t- Download latest release')
 	print('ghstars <string>\t- Search starred repos')

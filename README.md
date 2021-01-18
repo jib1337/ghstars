@@ -7,7 +7,7 @@ Just a python script that allows easy access to starred github repositories. If 
 EZ Config: Change the name of the user to pull stars from by modifying the "user" variable on line 4.  
 ```
 ==================================================
-                     ghstars
+                      ghstars
 ==================================================
 
 Tool to interact with starred github repos
